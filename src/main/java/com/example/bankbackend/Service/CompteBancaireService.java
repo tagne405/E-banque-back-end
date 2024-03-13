@@ -28,4 +28,6 @@ public interface CompteBancaireService {
     void deleteClient(Long clientId);
 
     List<OperationCompteDTO> historiqueCompte(String idCompte);
+
+    HistoriqueCompteDTO getHistoriqueCompte(String idCompte, int page, int taille) throws CompteBancaireNotFoundException;
 }
