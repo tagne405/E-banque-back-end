@@ -11,6 +11,8 @@ import com.example.bankbackend.exception.ClientNotFoundException;
 import com.example.bankbackend.exception.CompteBancaireNotFoundException;
 import com.example.bankbackend.exception.MontantNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @Transactional
@@ -46,6 +49,7 @@ public class CompteBancaireServiceImpl implements CompteBancaireService {
 
     @Override
     public ClientDTO saveClient(ClientDTO clientDTO) {
+        //log de sont annotation @slf4j permet de logger des messages
         log.info("Enregistrement nouveaux client");
         Client client = dtoMapper.deClientDTO(clientDTO);
         Client saveClient = clientRepository.save(client);
@@ -190,7 +194,28 @@ public class CompteBancaireServiceImpl implements CompteBancaireService {
 
     @Override
     public List<OperationCompteDTO> historiqueCompte(String idCompte){
-        List<OperationCompte> operationCompteById = operationCompteRepository.findByCompteBancaireId(idCompte);
+        log.info("historique");
+        List<OperationCompte> operationCompteById = operationCompteRepository.findByCompteBancaire_Id(idCompte);
         return operationCompteById.stream().map(op->dtoMapper.deOperationCompte(op)).collect(Collectors.toList());
+    }
+
+    @Override
+    public HistoriqueCompteDTO getHistoriqueCompte(String idCompte, int page, int taille) throws CompteBancaireNotFoundException {
+        CompteBancaire compteBancaire = compteBancaireRepository.findById(idCompte).orElse(null);
+        if (compteBancaire == null) throw  new CompteBancaireNotFoundException("Compte Bancaire pas retrouve");
+        Page<OperationCompte> operationCompte = operationCompteRepository.findByCompteBancaireId(idCompte, PageRequest.of(page, taille));
+        HistoriqueCompteDTO historiqueCompteDTO = new HistoriqueCompteDTO();
+        List<OperationCompteDTO> operationCompteDTO =  operationCompte.getContent().stream().map(operationCompte1 -> dtoMapper.deOperationCompte(operationCompte1)).collect(Collectors.toList());
+
+       //pense a ajouter ces transfert dans le mapper
+
+        historiqueCompteDTO.setOperationCompteDTOS(operationCompteDTO);
+        historiqueCompteDTO.setIdCompte(compteBancaire.getId());
+        historiqueCompteDTO.setSolde(compteBancaire.getSolde());
+        historiqueCompteDTO.setTaillePage(taille);
+        historiqueCompteDTO.setPageCourant(page);
+        historiqueCompteDTO.setPageTotal(operationCompte.getTotalPages());
+
+        return historiqueCompteDTO;
     }
 }
