@@ -21,17 +21,16 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 @Transactional
 @Slf4j
 public class CompteBancaireServiceImpl implements CompteBancaireService {
 
-    private ClientRepository clientRepository;
-    private CompteBancaireRepository compteBancaireRepository;
-    private OperationCompteRepository operationCompteRepository;
-    private CompteBancaireMapperImpl dtoMapper;
+    private final ClientRepository clientRepository;
+    private final CompteBancaireRepository compteBancaireRepository;
+    private final OperationCompteRepository operationCompteRepository;
+    private final CompteBancaireMapperImpl dtoMapper;
 
     //injection de dependence
     public CompteBancaireServiceImpl(ClientRepository clientRepository,
@@ -101,12 +100,22 @@ public class CompteBancaireServiceImpl implements CompteBancaireService {
         return clientDTOS;
     }
 
+    //retrouve un client par son nom
+    @Override
+    public List<ClientDTO> rechercheClient(String motCle){
+
+        List<Client> client = clientRepository.findClientByNomContains(motCle);
+        List<ClientDTO> clientDTOS = client.stream()
+                .map(clientDTO -> dtoMapper.deClient(clientDTO))
+                .collect(Collectors.toList());
+        return clientDTOS;
+    }
+
     @Override
     public CompteBancaireDTO getCompteBancaire(String compteId) throws CompteBancaireNotFoundException {
         CompteBancaire compteBancaire = compteBancaireRepository.findById(compteId)
                 .orElseThrow(() -> new CompteBancaireNotFoundException("Compte pas trouve"));
-        if (compteBancaire instanceof CompteEpargne){
-            CompteEpargne compteEpargne = (CompteEpargne) compteBancaire;
+        if (compteBancaire instanceof CompteEpargne compteEpargne){
             return dtoMapper.deCompteEpargne(compteEpargne);
         }else {
             CompteCourant compteCourant = (CompteCourant) compteBancaire;
@@ -160,22 +169,23 @@ public class CompteBancaireServiceImpl implements CompteBancaireService {
     @Override
     public List<CompteBancaireDTO> compteBancaireList(){
         List<CompteBancaire> listeCompteBancaire = compteBancaireRepository.findAll();
-        List<CompteBancaireDTO> compteBancaireDTOS = listeCompteBancaire.stream().map(list -> {
-            if (list instanceof CompteEpargne) {
-                CompteEpargne compteEpargne = (CompteEpargne) list;
+
+        return listeCompteBancaire
+                .stream()
+                .map(list -> {
+            if (list instanceof CompteEpargne compteEpargne) {
                 return dtoMapper.deCompteEpargne(compteEpargne);
             } else {
                 CompteCourant compteCourant = (CompteCourant) list;
                 return dtoMapper.deCompteCourant(compteCourant);
             }
         }).collect(Collectors.toList());
-
-        return compteBancaireDTOS;
     }
 
     @Override
     public ClientDTO getClient(Long clientId) throws ClientNotFoundException {
-        Client client = clientRepository.findById(clientId).orElseThrow(() -> new ClientNotFoundException("Cllient pas retrouve"));
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new ClientNotFoundException("Cllient pas retrouve"));
         return dtoMapper.deClient(client);
     }
 
@@ -195,8 +205,10 @@ public class CompteBancaireServiceImpl implements CompteBancaireService {
     @Override
     public List<OperationCompteDTO> historiqueCompte(String idCompte){
         log.info("historique");
-        List<OperationCompte> operationCompteById = operationCompteRepository.findByCompteBancaire_Id(idCompte);
-        return operationCompteById.stream().map(op->dtoMapper.deOperationCompte(op)).collect(Collectors.toList());
+        List<OperationCompte> operationCompteById = operationCompteRepository.findByCompteBancaireId(idCompte);
+        return operationCompteById.stream()
+                .map(op->dtoMapper.deOperationCompte(op))
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -205,11 +217,16 @@ public class CompteBancaireServiceImpl implements CompteBancaireService {
         if (compteBancaire == null) throw  new CompteBancaireNotFoundException("Compte Bancaire pas retrouve");
         Page<OperationCompte> operationCompte = operationCompteRepository.findByCompteBancaireId(idCompte, PageRequest.of(page, taille));
         HistoriqueCompteDTO historiqueCompteDTO = new HistoriqueCompteDTO();
-        List<OperationCompteDTO> operationCompteDTO =  operationCompte.getContent().stream().map(operationCompte1 -> dtoMapper.deOperationCompte(operationCompte1)).collect(Collectors.toList());
+        List<OperationCompteDTO> operationCompteDTO = operationCompte
+                .getContent()
+                .stream()
+                .map(operationCompte1 -> dtoMapper.deOperationCompte(operationCompte1))
+                .collect(Collectors.toList());
 
        //pense a ajouter ces transfert dans le mapper
 
         historiqueCompteDTO.setOperationCompteDTOS(operationCompteDTO);
+
         historiqueCompteDTO.setIdCompte(compteBancaire.getId());
         historiqueCompteDTO.setSolde(compteBancaire.getSolde());
         historiqueCompteDTO.setTaillePage(taille);

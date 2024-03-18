@@ -18,5 +18,6 @@ public class Client {
 
     //annotation utiliser pour ne pas charge touute la liste de compte bancaire mais pas optinal pour resoudre le probleme utilier plutot les DTO
     //@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+
     private List<CompteBancaire> compteBancaireList;
 }

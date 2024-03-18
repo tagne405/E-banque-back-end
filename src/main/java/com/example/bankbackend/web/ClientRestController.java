@@ -37,6 +37,11 @@ public class ClientRestController {
         return compteBancaireService.updateClient(clientDTO);
     }
 
+    @GetMapping("/client/recherche")
+    public List<ClientDTO> searchClientByNom(@RequestParam(name = "motCle", defaultValue = "") String motCle){
+        return compteBancaireService.rechercheClient(motCle);
+    }
+
     @DeleteMapping("/client/{id}")
     public void deleteClient(@PathVariable Long id){
         compteBancaireService.deleteClient(id);

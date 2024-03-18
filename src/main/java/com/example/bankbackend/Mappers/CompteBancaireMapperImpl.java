@@ -1,9 +1,6 @@
 package com.example.bankbackend.Mappers;
 
-import com.example.bankbackend.Dto.ClientDTO;
-import com.example.bankbackend.Dto.CompteCourantDTO;
-import com.example.bankbackend.Dto.CompteEpargneDTO;
-import com.example.bankbackend.Dto.OperationCompteDTO;
+import com.example.bankbackend.Dto.*;
 import com.example.bankbackend.Entite.Client;
 import com.example.bankbackend.Entite.CompteCourant;
 import com.example.bankbackend.Entite.CompteEpargne;
@@ -19,10 +16,12 @@ public class CompteBancaireMapperImpl {
         //transfert de donne dynamique
         BeanUtils.copyProperties(client,clientDTO);
 
-        //transfert statique
-        //clientDTO.setId(client.getId());
-        //clientDTO.setEmail(client.getEmail());
-        //clientDTO.setNom(client.getNom());
+        /*
+        transfert statique
+        clientDTO.setId(client.getId());
+        clientDTO.setEmail(client.getEmail());
+        clientDTO.setNom(client.getNom());
+        */
         return clientDTO;
     }
 
@@ -68,5 +67,11 @@ public class CompteBancaireMapperImpl {
         OperationCompteDTO operationCompteDTO = new OperationCompteDTO();
         BeanUtils.copyProperties(operationCompte,operationCompteDTO);
         return operationCompteDTO;
+    }
+
+    public HistoriqueCompteDTO deHistoriqueCompte(HistoriqueCompteDTO historiqueCompteDTO){
+        HistoriqueCompteDTO historiqueCompteDTO1 = new HistoriqueCompteDTO();
+        BeanUtils.copyProperties(historiqueCompteDTO,historiqueCompteDTO1);
+        return historiqueCompteDTO1;
     }
 }

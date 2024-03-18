@@ -10,7 +10,12 @@ import java.util.Date;
 import java.util.List;
 
 @Entity
-//les deux annotation ci dessous ce pour un mapping SINGLE TABLE
+/*
+les deux annotation ci dessous ce pour un mapping SINGLE TABLE
+TABLE PER CLASSE pour une creation de chaque table
+        JOIN TABLE
+
+ */
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "TYPE" ,length = 4)
 @Data @NoArgsConstructor @AllArgsConstructor
